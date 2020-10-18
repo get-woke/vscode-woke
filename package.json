@@ -1,7 +1,7 @@
 {
-	"name": "woke-vscode",
-	"displayName": "woke-vscode",
-	"description": "A text file analysis tool that detects non-inclusive language in your source code.",
+	"name": "vscode-woke",
+	"displayName": "vscode-woke",
+	"description": "Detect non-inclusive language in your source code.",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.48.0"
@@ -10,14 +10,14 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:woke-vscode.helloWorld"
+		"onFileSystem:file"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "woke-vscode.helloWorld",
-				"title": "Hello World"
+				"command": "woke.run",
+				"title": "Run woke"
 			}
 		]
 	},
