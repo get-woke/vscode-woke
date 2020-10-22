@@ -15,6 +15,12 @@
 	"categories": [
 		"Linters"
 	],
+	"keywords": [
+		"inclusive",
+		"insensitive",
+		"language",
+		"linter"
+	],
 	"homepage": "https://github.com/get-woke/vscode-woke/blob/main/README.md",
 	"repository": {
 		"type": "git",
