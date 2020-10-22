@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as semver from 'semver';
+import { getToolVersion, tryPromptForUpdatingTool, getExecutable } from './util/tool-check';
 
 enum MessageSeverity {
   info,
@@ -7,38 +9,125 @@ enum MessageSeverity {
   error,
 }
 
+interface WokeSettings {
+  enabled: boolean;
+  executable: string;
+  trigger: RunTrigger;
+  customArgs: string[];
+}
+
+enum RunTrigger {
+  onSave,
+  onType,
+  manual,
+}
+
+namespace RunTrigger {
+  export const strings = {
+    onSave: 'onSave',
+    onType: 'onType',
+    manual: 'manual',
+  };
+
+  export function from(value: string): RunTrigger {
+    switch (value) {
+      case strings.onSave:
+        return RunTrigger.onSave;
+      case strings.onType:
+        return RunTrigger.onType;
+      default:
+        return RunTrigger.manual;
+    }
+  }
+}
+
 export class WokeProvider implements vscode.CodeActionProvider {
   private static commandId: string = 'woke.run';
   private diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection();
   private alternatives = new Map();
-  // TODO
-  // private readonly config = vscode.workspace.getConfiguration('woke');
+  private channel: vscode.OutputChannel;
+  private settings!: WokeSettings;
+  private executableNotFound: boolean;
+  private toolVersion: semver.SemVer | null;
+  private documentListener!: vscode.Disposable;
 
-  public activate(subscriptions: vscode.Disposable[]): void {
-    subscriptions.push(this);
+  public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
-    vscode.workspace.onDidOpenTextDocument(this.doLint, this, subscriptions);
-    vscode.workspace.onDidCloseTextDocument(
-      (textDocument) => {
-        this.diagnosticCollection.delete(textDocument.uri);
-      },
-      null,
-      subscriptions
+  constructor(private readonly context: vscode.ExtensionContext) {
+    this.channel = vscode.window.createOutputChannel('woke');
+    this.executableNotFound = false;
+    this.toolVersion = null;
+
+    // code actions
+    context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider('woke', this, {
+        providedCodeActionKinds: WokeProvider.providedCodeActionKinds,
+      }),
     );
 
-    vscode.workspace.onDidSaveTextDocument(this.doLint, this);
-    vscode.workspace.textDocuments.forEach(this.doLint, this);
+    // commands
+    context.subscriptions.push(
+      vscode.commands.registerTextEditorCommand(WokeProvider.commandId, async (editor) => {
+        return await this.doLint(editor.document);
+      }),
+    );
 
-    vscode.commands.registerTextEditorCommand(WokeProvider.commandId, async (editor) => {
-      return await this.doLint(editor.document);
+    // event handlers
+    vscode.workspace.onDidChangeConfiguration(this.loadConfiguration, this, context.subscriptions);
+    vscode.workspace.onDidOpenTextDocument(this.doLint, this, context.subscriptions);
+
+    // populate this.settings
+    this.loadConfiguration().then(() => {
+      // woke all open documents
+      vscode.workspace.textDocuments.forEach(this.doLint, this);
     });
-
   }
 
   public dispose(): void {
+    if (this.documentListener) {
+      this.documentListener.dispose();
+    }
     this.diagnosticCollection.clear();
     this.diagnosticCollection.dispose();
+    this.channel.dispose();
     this.alternatives.clear();
+  }
+
+  private async loadConfiguration() {
+    const section = vscode.workspace.getConfiguration('woke', null);
+    const settings = <WokeSettings>{
+      enabled: section.get('enable', true),
+      trigger: RunTrigger.from(section.get('run', RunTrigger.strings.onSave)),
+      executable: getExecutable(section.get('executablePath')),
+      customArgs: section.get('customArgs', []),
+    };
+    this.settings = settings;
+
+    this.diagnosticCollection.clear();
+
+    if (settings.enabled) {
+      if (settings.trigger === RunTrigger.onType) {
+        this.documentListener = vscode.workspace.onDidChangeTextDocument((e) => {
+          this.doLint(e.document);
+        }, this, this.context.subscriptions);
+      } else if (settings.trigger === RunTrigger.onSave) {
+        this.documentListener = vscode.workspace.onDidSaveTextDocument(this.doLint, this, this.context.subscriptions);
+      }
+
+      // Prompt user to update Woke binary when necessary
+      try {
+        this.toolVersion = await getToolVersion(settings.executable);
+        this.executableNotFound = false;
+      } catch (error) {
+        this.showMessage(error, MessageSeverity.error);
+        this.executableNotFound = true;
+      }
+      this.channel.appendLine(`[INFO] woke version: ${this.toolVersion}`);
+      tryPromptForUpdatingTool(this.toolVersion);
+    }
+
+    // Configuration has changed. Re-evaluate all documents
+    vscode.workspace.textDocuments.forEach(this.doLint, this);
   }
 
   provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.ProviderResult<(vscode.Command | vscode.CodeAction)[]> {
@@ -53,7 +142,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
   }
 
   private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
-    const msg = `[woke] Replace with '${replacement}'`;
+    const msg = `[woke] Click to replace with '${replacement}'`;
     const fix = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
     fix.edit.replace(document.uri, range, replacement);
@@ -93,14 +182,12 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
       const diagnostics: vscode.Diagnostic[] = [];
 
-      // TODO: Allow args from settings
       const args = ["--stdin", "-o", "json"];
+      args.concat(this.settings.customArgs);
 
-      // FIXME: use workspaceFolders instead of rootPath
       const options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
 
-      // TODO: Ensure this is installed
-      const childProcess = child_process.spawn("woke", args, options);
+      const childProcess = child_process.spawn(this.settings.executable, args, options);
       childProcess.on('error', (error: Error) => {
         if (error) {
           this.showMessage(`Failed to spawn 'woke' binary. \nError: ${error.message}`, MessageSeverity.error);
@@ -130,7 +217,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
           const lines = stdOutData.toString().split(/(?:\r\n|\r|\n)/g);
           for (const line of lines) {
             if (line === '') {
-              continue
+              continue;
             }
             let data = JSON.parse(line);
 
@@ -155,7 +242,6 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
               const range = new vscode.Range(line - 1, startColumn, line - 1, endColumn);
               const diagnostic = new vscode.Diagnostic(range, reason, severity);
-              diagnostic.relatedInformation
               diagnostic.code = code;
               diagnostic.source = "woke";
 

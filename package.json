@@ -3,12 +3,23 @@
 	"displayName": "vscode-woke",
 	"description": "Detect non-inclusive language in your source code.",
 	"version": "0.0.1",
+	"publisher": "caitlinelfring",
+	"author": "Caitlin Elfring <celfring@gmail.com>",
+	"license": "MIT",
 	"engines": {
 		"vscode": "^1.48.0"
 	},
 	"categories": [
-		"Other"
+		"Linters"
 	],
+	"homepage": "https://github.com/get-woke/vscode-woke",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/get-woke/vscode-woke.git"
+	},
+	"bugs": {
+		"url": "https://github.com/get-woke/vscode-woke/issues"
+	},
 	"activationEvents": [
 		"onFileSystem:file"
 	],
@@ -19,7 +30,54 @@
 				"command": "woke.run",
 				"title": "Run woke"
 			}
-		]
+		],
+		"configuration": {
+			"title": "woke",
+			"type": "object",
+			"properties": {
+				"woke.enable": {
+					"description": "Whether woke is enabled or not.",
+					"type": "boolean",
+					"scope": "resource",
+					"default": true
+				},
+				"woke.executablePath": {
+					"description": "Path to the woke executable.",
+					"examples": [
+						"/usr/local/bin/woke"
+					],
+					"type": "string",
+					"scope": "resource",
+					"default": "woke"
+				},
+				"woke.run": {
+					"description": "Whether woke is run on save or on type.",
+					"type": "string",
+					"enum": [
+						"onSave",
+						"onType",
+						"manual"
+					],
+					"scope": "resource",
+					"default": "onSave"
+				},
+				"woke.customArgs": {
+					"description": "Custom arguments to woke.",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"scope": "resource",
+					"default": []
+				},
+				"woke.disableVersionCheck": {
+					"description": "Whether to disable woke binary version check, which prompt for updating when outdated version found.",
+					"type": "boolean",
+					"scope": "application",
+					"default": false
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -30,16 +88,21 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.48.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^14.0.27",
-		"eslint": "^7.6.0",
+		"@types/semver": "^7.3.4",
+		"@types/vscode": "^1.48.0",
+		"@types/which": "^1.3.2",
 		"@typescript-eslint/eslint-plugin": "^3.8.0",
 		"@typescript-eslint/parser": "^3.8.0",
+		"eslint": "^7.6.0",
 		"glob": "^7.1.6",
 		"mocha": "^8.1.3",
+		"path": "^0.12.7",
+		"semver": "^7.3.2",
 		"typescript": "^4.0.2",
-		"vscode-test": "^1.4.0"
+		"vscode-test": "^1.4.0",
+		"which": "^2.0.2"
 	}
 }

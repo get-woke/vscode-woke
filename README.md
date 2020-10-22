@@ -1,65 +1,23 @@
-# woke-vscode README
+# VS Code Extension for `woke`
 
-This is the README for your extension "woke-vscode". After writing up a brief description, we recommend including the following sections.
+Run [`woke`](https://github.com/get-woke/woke) in VS Code
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+All the awesome features of `woke`, within VS Code!
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Animations coming soon!
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+You must have [`woke`](https://github.com/get-woke/woke#installation) installed to use this extension. Requires `v0.2.0` or better.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+* `woke.enable`: enable/disable this extension
+* `woke.executablePath`: set the path to the `woke` executable. By default, it will use `woke` that is found in your PATH. Set this value if you install `woke` elsewhere.
+* `woke.run`: run `woke` on save, on type, or manually. Note that "on type" does not currently have any debouncing.
+* `woke.customArgs`: Additional arguments to run `woke` with (See <https://github.com/get-woke/woke#usage>)
+* `woke.disableVersionCheck`: Whether to disable woke binary version check, which prompt for updating when outdated version found (default false).

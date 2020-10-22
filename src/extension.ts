@@ -7,8 +7,7 @@ import { WokeProvider } from './provider';
 export function activate(context: vscode.ExtensionContext): void {
 	const wokeDiagnostics = vscode.languages.createDiagnosticCollection("woke");
 	context.subscriptions.push(wokeDiagnostics);
-	const linter = new WokeProvider();
-	linter.activate(context.subscriptions);
+	const linter = new WokeProvider(context);
 	vscode.languages.registerCodeActionsProvider({scheme: 'file'}, linter);
 }
 
