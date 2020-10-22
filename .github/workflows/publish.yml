@@ -1,10 +1,11 @@
+name: Publish to Marketplace
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - v*
 
 jobs:
-  public:
+  publish:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
