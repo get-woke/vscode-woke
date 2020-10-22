@@ -4,21 +4,29 @@
 	"description": "Detect non-inclusive language in your source code.",
 	"version": "0.0.1",
 	"publisher": "get-woke",
-	"author": "Caitlin Elfring <celfring@gmail.com>",
-	"license": "MIT",
+	"author": {
+		"email": "celfring@gmail.com",
+		"name": "Caitlin Elfring"
+	},
+	"license": "SEE LICENSE IN LICENSE",
 	"engines": {
 		"vscode": "^1.48.0"
 	},
 	"categories": [
 		"Linters"
 	],
-	"homepage": "https://github.com/get-woke/vscode-woke",
+	"homepage": "https://github.com/get-woke/vscode-woke/blob/main/README.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/get-woke/vscode-woke.git"
 	},
 	"bugs": {
 		"url": "https://github.com/get-woke/vscode-woke/issues"
+	},
+	"icon": "assets/icon.png",
+	"galleryBanner": {
+		"color": "#000000",
+		"theme": "dark"
 	},
 	"activationEvents": [
 		"onFileSystem:file"
