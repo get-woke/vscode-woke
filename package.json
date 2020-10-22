@@ -101,7 +101,8 @@
 		"test": "node ./out/test/runTest.js",
 		"vscode:prepublish": "webpack --mode production",
 		"deploy": "vsce publish",
-		"test-compile": "tsc -p ./"
+		"test-compile": "tsc -p ./",
+		"postversion": "git push && git push --tags"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
