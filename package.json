@@ -102,7 +102,10 @@
 		"vscode:prepublish": "webpack --mode production",
 		"deploy": "vsce publish",
 		"test-compile": "tsc -p ./",
-		"postversion": "git push && git push --tags"
+		"postversion": "git push && git push --tags",
+		"bump:patch": "npm version patch -m 'Bump version %s'",
+		"bump:minor": "npm version minor -m 'Bump version %s'",
+		"bump:major": "npm version major -m 'Bump version %s'"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
