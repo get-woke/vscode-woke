@@ -9,7 +9,7 @@ Run [`woke`](https://github.com/get-woke/woke) in VS Code
 
 All the awesome features of `woke`, within VS Code!
 
-Animations coming soon!
+![vscode-woke demo](https://raw.githubusercontent.com/get-woke/vscode-woke/main/assets/demo.gif)
 
 ## Requirements
 
