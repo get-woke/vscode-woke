@@ -146,6 +146,10 @@ export class WokeProvider implements vscode.CodeActionProvider {
     const fix = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
     fix.edit.replace(document.uri, range, replacement);
+    fix.command = {
+      title: 'Run woke',
+      command: WokeProvider.commandId
+    };
     return fix;
   }
 
