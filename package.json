@@ -96,7 +96,7 @@
 	"scripts": {
 		"compile": "webpack --mode none",
 		"lint": "eslint src --ext ts",
-		"watch": "webpack --mode none --watch",
+		"watch": "webpack --mode none --watch --info-verbosity verbose",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js",
 		"vscode:prepublish": "webpack --mode production",
