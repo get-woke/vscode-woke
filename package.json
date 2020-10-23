@@ -1,6 +1,6 @@
 {
 	"name": "vscode-woke",
-	"displayName": "vscode-woke",
+	"displayName": "woke",
 	"description": "Detect non-inclusive language in your source code.",
 	"version": "0.0.5",
 	"publisher": "get-woke",
