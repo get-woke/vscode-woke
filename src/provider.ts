@@ -53,6 +53,9 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
   public static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
+  private static fileArgs: string[] = ['-o', 'json'];
+  private static bufferArgs: string[] = ['--stdin', '-o', 'json'];
+
   constructor(private readonly context: vscode.ExtensionContext) {
     this.channel = vscode.window.createOutputChannel('woke');
     this.executableNotFound = false;
@@ -146,10 +149,6 @@ export class WokeProvider implements vscode.CodeActionProvider {
     const fix = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
     fix.edit.replace(document.uri, range, replacement);
-    fix.command = {
-      title: 'Run woke',
-      command: WokeProvider.commandId
-    };
     return fix;
   }
 
@@ -169,27 +168,32 @@ export class WokeProvider implements vscode.CodeActionProvider {
   }
 
   private async doLint(textDocument: vscode.TextDocument): Promise<void> {
-    let diagnostics: vscode.Diagnostic[] = [];
     const docUri = textDocument.uri;
-
-    let fileContent = textDocument.getText();
-
-    if (fileContent !== '') {
-      diagnostics = await this.runWoke(fileContent);
-    }
+    let diagnostics: vscode.Diagnostic[] = await this.runWoke(textDocument);
 
     this.diagnosticCollection.set(docUri, diagnostics);
   }
 
-  private async runWoke(source: string): Promise<vscode.Diagnostic[]> {
+  private async runWoke(textDocument: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
     return new Promise<vscode.Diagnostic[]>((resolve) => {
 
       const diagnostics: vscode.Diagnostic[] = [];
-
-      const args = ["--stdin", "-o", "json"];
-      args.concat(this.settings.customArgs);
+      let processLine = (item: string) => {
+        if (item === '' || item.startsWith("No violations found")) {
+          return;
+        }
+        diagnostics.push(...this.asDiagnostic(item));
+      };
 
       const options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
+      let args: string[] = [];
+      args.concat(this.settings.customArgs);
+      if (this.settings.trigger === RunTrigger.onSave) {
+        args = WokeProvider.fileArgs.slice(0);
+        args.push(textDocument.fileName);
+      } else {
+        args = WokeProvider.bufferArgs;
+      }
 
       const childProcess = child_process.spawn(this.settings.executable, args, options);
       childProcess.on('error', (error: Error) => {
@@ -210,7 +214,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
       childProcess.on('close', (exitCode) => {
         if (exitCode !== 0) {
           // general error when woke failed
-          const message = `woke failed.
+          const message = `${this.settings.executable} failed.
           Arguments:
           ${args.join('\n')}
           stderr:
@@ -218,58 +222,60 @@ export class WokeProvider implements vscode.CodeActionProvider {
           `;
           this.showMessage(message, MessageSeverity.error);
         } else {
-          const lines = stdOutData.toString().split(/(?:\r\n|\r|\n)/g);
-          for (const line of lines) {
-            if (line === '' || line.startsWith("No violations found")) {
-              continue;
-            }
-
-            let data;
-            try {
-              data = JSON.parse(line);
-            } catch (e) {
-              console.warn(`error parsing json: ${e}`);
-              continue;
-            }
-
-            for (const result of data.Results) {
-              let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Information;
-
-              let sev = result.Rule.Severity;
-              if (sev === "error") {
-                severity = vscode.DiagnosticSeverity.Error;
-              } else if (sev === "warning") {
-                severity = vscode.DiagnosticSeverity.Warning;
-              }
-              const code = result.Rule.Name;
-              // to be referenced later
-              this.alternatives.set(code, result.Rule.Alternatives);
-
-              // TODO: error checking
-              let line = result.StartPosition.Line;
-              let startColumn = result.StartPosition.Column;
-              let endColumn = result.EndPosition.Column;
-              let reason = result.Reason;
-
-              const range = new vscode.Range(line - 1, startColumn, line - 1, endColumn);
-              const diagnostic = new vscode.Diagnostic(range, reason, severity);
-              diagnostic.code = code;
-              diagnostic.source = "woke";
-
-              diagnostics.push(diagnostic);
-            }
-          }
+          stdOutData.toString().split(/(?:\r\n|\r|\n)/g).forEach(processLine);
         }
+
         resolve(diagnostics);
       });
 
-      // write into stdin pipe
-      try {
-        childProcess.stdin.write(source);
-        childProcess.stdin.end();
-      } catch (error) {
-        this.showMessage(`Failed to write to STDIN \nError: ${error.message}`, MessageSeverity.error);
+      if (this.settings.trigger === RunTrigger.onType) {
+        // write into stdin pipe
+        try {
+          childProcess.stdin.write(textDocument.getText());
+          childProcess.stdin.end();
+        } catch (error) {
+          this.showMessage(`Failed to write to STDIN \nError: ${error.message}`, MessageSeverity.error);
+        }
       }
     });
+  }
+
+  private asDiagnostic(line: string): vscode.Diagnostic[] {
+    const diagnostics: vscode.Diagnostic[] = [];
+    let data;
+    try {
+      data = JSON.parse(line);
+    } catch (e) {
+      console.warn(`error parsing json: ${e}`);
+      return diagnostics;
+    }
+
+    for (const result of data.Results) {
+      let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Information;
+
+      let sev = result.Rule.Severity;
+      if (sev === "error") {
+        severity = vscode.DiagnosticSeverity.Error;
+      } else if (sev === "warning") {
+        severity = vscode.DiagnosticSeverity.Warning;
+      }
+      const code = result.Rule.Name;
+      // to be referenced later
+      this.alternatives.set(code, result.Rule.Alternatives);
+
+      // TODO: error checking
+      let line = result.StartPosition.Line;
+      let startColumn = result.StartPosition.Column;
+      let endColumn = result.EndPosition.Column;
+      let reason = result.Reason;
+
+      const range = new vscode.Range(line - 1, startColumn, line - 1, endColumn);
+      const diagnostic = new vscode.Diagnostic(range, reason, severity);
+      diagnostic.code = code;
+      diagnostic.source = "woke";
+
+      diagnostics.push(diagnostic);
+    }
+    return diagnostics;
   }
 }
