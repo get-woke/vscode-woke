@@ -216,10 +216,17 @@ export class WokeProvider implements vscode.CodeActionProvider {
         } else {
           const lines = stdOutData.toString().split(/(?:\r\n|\r|\n)/g);
           for (const line of lines) {
-            if (line === '') {
+            if (line === '' || line.startsWith("No violations found")) {
               continue;
             }
-            let data = JSON.parse(line);
+
+            let data;
+            try {
+              data = JSON.parse(line);
+            } catch (e) {
+              console.warn(`error parsing json: ${e}`);
+              continue;
+            }
 
             for (const result of data.Results) {
               let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Information;
