@@ -2,7 +2,7 @@ import * as child_process from 'child_process';
 import * as semver from 'semver';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
-import * as which from 'which';
+import * as which from './which';
 import * as path from 'path';
 
 const execFile = promisify(child_process.execFile);
@@ -58,7 +58,7 @@ export class DisableVersionCheckUpdateSetting {
   }
 }
 
-export function getExecutable(executablePath: string | undefined): string {
+export function getExecutable(executablePath: string | null): string {
   if (!executablePath) {
     const isWindows = process.platform === 'win32' ||
       process.env.OSTYPE === 'cygwin' ||
@@ -70,12 +70,12 @@ export function getExecutable(executablePath: string | undefined): string {
     executablePath = `woke${suffix}`;
   }
   if (!path.isAbsolute(executablePath)) {
-    executablePath = which.sync(executablePath, { nothrow: true }) || undefined;
+    executablePath = which.sync(executablePath, { nothrow: true } as which.Options);
   }
 
   // best guess effort?
   if (!executablePath) {
-    executablePath = '/usr/local/bin/woke';
+    executablePath = 'woke';
   }
 
   return executablePath;

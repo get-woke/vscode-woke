@@ -101,7 +101,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
     const settings = <WokeSettings>{
       enabled: section.get('enable', true),
       trigger: RunTrigger.from(section.get('run', RunTrigger.strings.onSave)),
-      executable: getExecutable(section.get('executablePath')),
+      executable: getExecutable(section.get('executablePath', null)),
       customArgs: section.get('customArgs', []),
     };
     this.settings = settings;
