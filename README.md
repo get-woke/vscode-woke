@@ -4,6 +4,7 @@ Run [`woke`](https://github.com/get-woke/woke) in VS Code
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/get-woke.vscode-woke.svg)](https://marketplace.visualstudio.com/items?itemName=get-woke.vscode-woke)
 [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/get-woke.vscode-woke.svg)](https://marketplace.visualstudio.com/items?itemName=get-woke.vscode-woke)
+![Tests](https://github.com/get-woke/vscode-woke/workflows/Tests/badge.svg)
 
 ## Features
 

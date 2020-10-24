@@ -1,0 +1,58 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    name: Tests
+    steps:
+      # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
+      - name: Install woke
+        run: |
+          TEMP_PATH="$(mktemp -d)"
+          echo "${TEMP_PATH}" >> $GITHUB_PATH
+
+          echo '::group:: Installing woke ... https://github.com/get-woke/woke'
+          curl -sfL https://raw.githubusercontent.com/get-woke/woke/main/install.sh | sh -s -- -b "${TEMP_PATH}" 2>&1
+          echo '::endgroup::'
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      # start cache setup
+      # https://github.com/actions/cache/blob/main/examples.md#using-multiple-systems-and-npm-config
+      - name: Get npm cache directory
+        id: npm-cache
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ${{ steps.npm-cache.outputs.dir }}
+            .vscode-test
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      # end cache setup
+
+      - name: Run npm install
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      # https://code.visualstudio.com/api/working-with-extensions/continuous-integration#github-actions
+      - run: xvfb-run -a npm test
+        if: runner.os == 'Linux'
+      - run: npm test
+        if: runner.os != 'Linux'

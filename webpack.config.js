@@ -3,6 +3,8 @@
 'use strict';
 
 const path = require('path');
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const FileManagerPlugin = require('filemanager-webpack-plugin');
 
 /**@type {import('webpack').Configuration}*/
 const config = {
@@ -36,6 +38,20 @@ const config = {
         ]
       }
     ]
-  }
+  },
+  plugins: [
+    // Copy files to dist folder where the runtime can find them
+    new FileManagerPlugin({
+      onEnd: {
+        copy: [
+          // Test files -> dist/test (these files are ignored during packaging)
+          {
+            source: path.join(__dirname, 'out', 'test'),
+            destination: path.join(__dirname, 'dist', 'test')
+          }
+        ]
+      }
+    }),
+  ],
 };
 module.exports = config;
