@@ -179,6 +179,8 @@ export class WokeProvider implements vscode.CodeActionProvider {
     return new Promise<vscode.Diagnostic[]>((resolve) => {
 
       const diagnostics: vscode.Diagnostic[] = [];
+      const useBufferArgs = textDocument.isUntitled || this.settings.trigger !== RunTrigger.onSave;
+
       let processLine = (item: string) => {
         if (item === '' || item.startsWith("No violations found")) {
           return;
@@ -189,11 +191,12 @@ export class WokeProvider implements vscode.CodeActionProvider {
       const options = vscode.workspace.rootPath ? { cwd: vscode.workspace.rootPath } : undefined;
       let args: string[] = [];
       args.concat(this.settings.customArgs);
-      if (this.settings.trigger === RunTrigger.onSave) {
+
+      if (useBufferArgs) {
+        args = WokeProvider.bufferArgs;
+      } else {
         args = WokeProvider.fileArgs.slice(0);
         args.push(textDocument.fileName);
-      } else {
-        args = WokeProvider.bufferArgs;
       }
 
       const childProcess = child_process.spawn(this.settings.executable, args, options);
@@ -229,7 +232,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
         resolve(diagnostics);
       });
 
-      if (this.settings.trigger === RunTrigger.onType) {
+      if (useBufferArgs) {
         // write into stdin pipe
         try {
           childProcess.stdin.write(textDocument.getText());
