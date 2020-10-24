@@ -9,10 +9,19 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     name: Tests
     steps:
+      # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
+      - name: Install woke
+        run: |
+          TEMP_PATH="$(mktemp -d)"
+          echo "${TEMP_PATH}" >> $GITHUB_PATH
+
+          echo '::group:: Installing woke ... https://github.com/get-woke/woke'
+          curl -sfL https://raw.githubusercontent.com/get-woke/woke/main/install.sh | sh -s -- -b "${TEMP_PATH}" 2>&1
+          echo '::endgroup::'
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install Node.js
