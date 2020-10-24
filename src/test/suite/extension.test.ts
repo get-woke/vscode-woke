@@ -20,7 +20,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 suite('Woke extension', () => {
-	test('Extension should be activated on files', async () => {
+	test('Extension should activate and find violation', async () => {
 		const ext = <vscode.Extension<any>>vscode.extensions.getExtension('get-woke.vscode-woke');
 		const filename = tmp.tmpNameSync();
 		fs.writeFileSync(filename, "whitelist\n", 'utf8');
