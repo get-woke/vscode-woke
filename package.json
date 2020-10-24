@@ -61,8 +61,7 @@
 						"/usr/local/bin/woke"
 					],
 					"type": "string",
-					"scope": "resource",
-					"default": "woke"
+					"scope": "resource"
 				},
 				"woke.run": {
 					"description": "Whether woke is run on save or on type.",

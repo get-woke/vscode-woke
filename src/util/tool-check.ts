@@ -2,8 +2,6 @@ import * as child_process from 'child_process';
 import * as semver from 'semver';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
-import * as which from './which';
-import * as path from 'path';
 
 const execFile = promisify(child_process.execFile);
 
@@ -56,27 +54,4 @@ export class DisableVersionCheckUpdateSetting {
   persist() {
     this.config.update(DisableVersionCheckUpdateSetting.key, true, true);
   }
-}
-
-export function getExecutable(executablePath: string | null): string {
-  if (!executablePath) {
-    const isWindows = process.platform === 'win32' ||
-      process.env.OSTYPE === 'cygwin' ||
-      process.env.OSTYPE === 'msys';
-    let suffix = '';
-    if (isWindows) {
-      suffix = '.exe';
-    }
-    executablePath = `woke${suffix}`;
-  }
-  if (!path.isAbsolute(executablePath)) {
-    executablePath = which.sync(executablePath, { nothrow: true } as which.Options);
-  }
-
-  // best guess effort?
-  if (!executablePath) {
-    executablePath = 'woke';
-  }
-
-  return executablePath;
 }
