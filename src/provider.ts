@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import * as semver from 'semver';
-import { getToolVersion, tryPromptForUpdatingTool, getExecutable } from './util/tool-check';
+import { getToolVersion, tryPromptForUpdatingTool } from './util/tool-check';
+import { getExecutable } from './util/utils';
 
 enum MessageSeverity {
   info,

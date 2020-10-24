@@ -19,10 +19,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 // Typescript port of https://github.com/npm/node-which, including unmerged
 // https://github.com/npm/node-which/pull/59
 
-const isWindows = process.platform === 'win32' ||
-  process.env.OSTYPE === 'cygwin' ||
-  process.env.OSTYPE === 'msys';
-
+import { isWindows } from './utils';
 import { join } from 'path';
 const COLON = isWindows ? ';' : ':';
 import * as isexe from 'isexe';
