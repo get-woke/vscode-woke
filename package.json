@@ -35,14 +35,15 @@
 		"theme": "dark"
 	},
 	"activationEvents": [
-		"onFileSystem:file"
+		"onFileSystem:file",
+		"onCommand:woke.run"
 	],
 	"main": "./dist/extension",
 	"contributes": {
 		"commands": [
 			{
 				"command": "woke.run",
-				"title": "Run woke"
+				"title": "Woke: Run"
 			}
 		],
 		"configuration": {
