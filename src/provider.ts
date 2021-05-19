@@ -145,11 +145,26 @@ export class WokeProvider implements vscode.CodeActionProvider {
     return actions;
   }
 
+  private capitalizeReplacementIfNeeded(document: vscode.TextDocument, range: vscode.Range, replacement: string): string {
+    const text = document.getText(range);
+    let caseAwareReplacement: string = replacement
+    if (text.length > 0) {
+      const firstCharacter = text[0]
+      if (firstCharacter == firstCharacter.toUpperCase()) {
+        caseAwareReplacement = replacement[0].toUpperCase()
+        if (replacement.length > 1) {
+          caseAwareReplacement += replacement.substring(1);
+        } 
+      }
+    }
+    return caseAwareReplacement;
+  }
+  
   private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
     const msg = `[woke] Click to replace with '${replacement}'`;
     const fix = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, range, replacement);
+    fix.edit.replace(document.uri, range, this.capitalizeReplacementIfNeeded(document, range, replacement));
     return fix;
   }
 
