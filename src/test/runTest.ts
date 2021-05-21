@@ -26,7 +26,7 @@ async function main() {
 			 *
 			 * See `code --help` for possible arguments.
 			 */
-			launchArgs: ['--disable-extensions']
+			launchArgs: ['--disable-extensions'],
 		});
 	} catch (err) {
 		console.error('Failed to run tests');
