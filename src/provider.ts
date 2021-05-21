@@ -17,7 +17,6 @@ interface WokeSettings {
   customArgs: string[];
 }
 
-
 enum RunTrigger {
   onSave,
   onType,
@@ -140,12 +139,12 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
     for (const diagnostic of context.diagnostics) {
       this.alternatives.get(diagnostic.code).forEach((alt: string) => {
-        actions.push(this.createFix(document, diagnostic.range, alt));        
+        actions.push(this.createFix(document, diagnostic.range, alt));
       });
     }
     for (const diagnostic of context.diagnostics) {
       this.alternatives.get(diagnostic.code).forEach((alt: string) => {
-        const action = this.createFixAll(document, diagnostic.code, alt)
+        const action = this.createFixAll(document, diagnostic.code, alt);
         if (action !== undefined) {
           actions.push(action);    
         }        
@@ -158,7 +157,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
   private getFixEdit(msg: string): vscode.CodeAction {
     const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();      
-    return fix
+    return fix;
   }
   
   
@@ -169,12 +168,12 @@ export class WokeProvider implements vscode.CodeActionProvider {
   }
 
   private createFixAll(document: vscode.TextDocument, code: any, replacement: string): vscode.CodeAction | undefined{
-    const textEdits = new Array<vscode.TextEdit>()
-    const diagnosticCollection = this.diagnosticCollection.get(document.uri)
+    const textEdits = new Array<vscode.TextEdit>();
+    const diagnosticCollection = this.diagnosticCollection.get(document.uri);
     if (diagnosticCollection !== undefined) {
       for (const diagnostic of diagnosticCollection) {
-        if (diagnostic.code == code) {
-          textEdits.push(new vscode.TextEdit(diagnostic.range, replacement))
+        if (diagnostic.code === code) {
+          textEdits.push(new vscode.TextEdit(diagnostic.range, replacement));
         }
       }
       
