@@ -21,6 +21,7 @@ export function sleep(ms: number): Promise<void> {
 
 suite('Woke extension', () => {
 	test('Extension should activate and find violation', async () => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const ext = <vscode.Extension<any>>vscode.extensions.getExtension('get-woke.vscode-woke');
 		const filename = tmp.tmpNameSync();
 		fs.writeFileSync(filename, "whitelist\n", 'utf8');

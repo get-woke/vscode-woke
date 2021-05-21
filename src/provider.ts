@@ -23,6 +23,7 @@ enum RunTrigger {
   manual,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace RunTrigger {
   export const strings = {
     onSave: 'onSave',
@@ -43,7 +44,7 @@ namespace RunTrigger {
 }
 
 export class WokeProvider implements vscode.CodeActionProvider {
-  private static commandId: string = 'woke.run';
+  private static commandId = 'woke.run';
   private diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection();
   private alternatives = new Map();
   private channel: vscode.OutputChannel;
@@ -170,7 +171,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
   private async doLint(textDocument: vscode.TextDocument): Promise<void> {
     const docUri = textDocument.uri;
-    let diagnostics: vscode.Diagnostic[] = await this.runWoke(textDocument);
+    const diagnostics: vscode.Diagnostic[] = await this.runWoke(textDocument);
 
     this.diagnosticCollection.set(docUri, diagnostics);
   }
@@ -181,7 +182,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
       const diagnostics: vscode.Diagnostic[] = [];
       const useBufferArgs = textDocument.isUntitled || this.settings.trigger !== RunTrigger.onSave;
 
-      let processLine = (item: string) => {
+      const processLine = (item: string) => {
         if (item === '' || item.startsWith("No violations found")) {
           return;
         }
@@ -257,10 +258,9 @@ export class WokeProvider implements vscode.CodeActionProvider {
     for (const result of data.Results) {
       let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Information;
 
-      let sev = result.Rule.Severity;
-      if (sev === "error") {
+      if (result.Rule.Severity === "error") {
         severity = vscode.DiagnosticSeverity.Error;
-      } else if (sev === "warning") {
+      } else if (result.Rule.Severity === "warning") {
         severity = vscode.DiagnosticSeverity.Warning;
       }
       const code = result.Rule.Name;
@@ -268,10 +268,10 @@ export class WokeProvider implements vscode.CodeActionProvider {
       this.alternatives.set(code, result.Rule.Alternatives);
 
       // TODO: error checking
-      let line = result.StartPosition.Line;
-      let startColumn = result.StartPosition.Column;
-      let endColumn = result.EndPosition.Column;
-      let reason = result.Reason;
+      const line = result.StartPosition.Line;
+      const startColumn = result.StartPosition.Column;
+      const endColumn = result.EndPosition.Column;
+      const reason = result.Reason;
 
       const range = new vscode.Range(line - 1, startColumn, line - 1, endColumn);
       const diagnostic = new vscode.Diagnostic(range, reason, severity);
