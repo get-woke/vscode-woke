@@ -147,11 +147,11 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
   private capitalizeReplacementIfNeeded(document: vscode.TextDocument, range: vscode.Range, replacement: string): string {
     const text = document.getText(range);
-    let caseAwareReplacement: string = replacement
+    let caseAwareReplacement: string = replacement;
     if (text.length > 0) {
-      const firstCharacter = text[0]
-      if (firstCharacter == firstCharacter.toUpperCase()) {
-        caseAwareReplacement = replacement[0].toUpperCase()
+      const firstCharacter = text[0];
+      if (firstCharacter === firstCharacter.toUpperCase()) {
+        caseAwareReplacement = replacement[0].toUpperCase();
         if (replacement.length > 1) {
           caseAwareReplacement += replacement.substring(1);
         } 
