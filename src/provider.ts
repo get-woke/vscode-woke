@@ -150,7 +150,6 @@ export class WokeProvider implements vscode.CodeActionProvider {
         }
       });
     }
-    
     return actions;
   }
 
