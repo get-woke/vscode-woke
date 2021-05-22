@@ -24,7 +24,7 @@ suite('Woke extension', () => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const ext = <vscode.Extension<any>>vscode.extensions.getExtension('get-woke.vscode-woke');
 		const filename = tmp.tmpNameSync();
-		fs.writeFileSync(filename, "whitelist\n", 'utf8');
+		fs.writeFileSync(filename, "whitelist\n", 'utf8'); // wokeignore:rule=whitelist
 
 		const document = await vscode.workspace.openTextDocument(filename);
 		const editor = await vscode.window.showTextDocument(document);
@@ -34,6 +34,6 @@ suite('Woke extension', () => {
 		const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
 		assert.strictEqual(ext.isActive, true, 'Extension should be activated');
 		assert.strictEqual(diagnostics.length, 1);
-		assert.strictEqual(diagnostics[0].code, 'whitelist');
+		assert.strictEqual(diagnostics[0].code, 'whitelist'); // wokeignore:rule=whitelist
 	});
 });
