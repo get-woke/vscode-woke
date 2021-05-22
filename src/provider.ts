@@ -146,8 +146,8 @@ export class WokeProvider implements vscode.CodeActionProvider {
       this.alternatives.get(diagnostic.code).forEach((alt: string) => {
         const action = this.createFixAll(document, diagnostic.code, alt);
         if (action !== undefined) {
-          actions.push(action);    
-        }        
+          actions.push(action);
+        }
       });
     }
     
@@ -156,7 +156,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
   
   private getFixEdit(msg: string): vscode.CodeAction {
     const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
-    fix.edit = new vscode.WorkspaceEdit();      
+    fix.edit = new vscode.WorkspaceEdit();
     return fix;
   }
   
@@ -179,8 +179,8 @@ export class WokeProvider implements vscode.CodeActionProvider {
       
       if (textEdits.length > 1) {
         const fix = this.getFixEdit(`[woke] Click to replace ALL with '${replacement}'`);
-        fix?.edit?.set(document.uri, textEdits); 
-        return fix;  
+        fix?.edit?.set(document.uri, textEdits);
+        return fix;
       }
 
     }
