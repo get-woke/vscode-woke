@@ -153,14 +153,13 @@ export class WokeProvider implements vscode.CodeActionProvider {
     
     return actions;
   }
-  
+
   private getFixEdit(msg: string): vscode.CodeAction {
     const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
     return fix;
   }
-  
-  
+
   private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
     const fix = this.getFixEdit(`[woke] Click to replace with '${replacement}'`);
     fix?.edit?.replace(document.uri, range, replacement);
@@ -176,17 +175,15 @@ export class WokeProvider implements vscode.CodeActionProvider {
           textEdits.push(new vscode.TextEdit(diagnostic.range, replacement));
         }
       }
-      
+
       if (textEdits.length > 1) {
         const fix = this.getFixEdit(`[woke] Click to replace ALL with '${replacement}'`);
         fix?.edit?.set(document.uri, textEdits);
         return fix;
       }
-
     }
-    
+
     return undefined;
-    
   }
 
   private showMessage(msg: string, severity: MessageSeverity): void {
@@ -213,7 +210,6 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
   private async runWoke(textDocument: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
     return new Promise<vscode.Diagnostic[]>((resolve) => {
-
       const diagnostics: vscode.Diagnostic[] = [];
       const useBufferArgs = textDocument.isUntitled || this.settings.trigger !== RunTrigger.onSave;
 
