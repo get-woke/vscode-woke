@@ -163,12 +163,12 @@ export class WokeProvider implements vscode.CodeActionProvider {
         caseAwareReplacement = replacement[0].toUpperCase();
         if (replacement.length > 1) {
           caseAwareReplacement += replacement.substring(1);
-        } 
+        }
       }
     }
     return caseAwareReplacement;
   }
-  
+
   private getFixEdit(msg: string): vscode.CodeAction {
     const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
