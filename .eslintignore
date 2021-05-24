@@ -1,0 +1,3 @@
+# Typescript port of https://github.com/npm/node-which, including unmerged
+# https://github.com/npm/node-which/pull/59
+src/util/which.ts

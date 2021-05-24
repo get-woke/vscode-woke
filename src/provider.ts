@@ -23,6 +23,7 @@ enum RunTrigger {
   manual,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace RunTrigger {
   export const strings = {
     onSave: 'onSave',
@@ -43,7 +44,7 @@ namespace RunTrigger {
 }
 
 export class WokeProvider implements vscode.CodeActionProvider {
-  private static commandId: string = 'woke.run';
+  private static commandId = 'woke.run';
   private diagnosticCollection: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection();
   private alternatives = new Map();
   private channel: vscode.OutputChannel;
@@ -142,6 +143,14 @@ export class WokeProvider implements vscode.CodeActionProvider {
         actions.push(this.createFix(document, diagnostic.range, alt));
       });
     }
+    for (const diagnostic of context.diagnostics) {
+      this.alternatives.get(diagnostic.code).forEach((alt: string) => {
+        const action = this.createFixAll(document, diagnostic.code, alt);
+        if (action !== undefined) {
+          actions.push(action);
+        }
+      });
+    }
     return actions;
   }
 
@@ -160,12 +169,39 @@ export class WokeProvider implements vscode.CodeActionProvider {
     return caseAwareReplacement;
   }
   
-  private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
-    const msg = `[woke] Click to replace with '${replacement}'`;
-    const fix = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
+  private getFixEdit(msg: string): vscode.CodeAction {
+    const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(document.uri, range, this.capitalizeReplacementIfNeeded(document, range, replacement));
     return fix;
+  }
+
+  private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
+    const capitalizedReplacement = this.capitalizeReplacementIfNeeded(document, range, replacement);
+    const msg = `[woke] Click to replace with '${capitalizedReplacement}'`;
+    const fix = this.getFixEdit(msg);
+    fix?.edit?.replace(document.uri, range, replacement);
+    return fix;
+  }
+
+  private createFixAll(document: vscode.TextDocument, code: any, replacement: string): vscode.CodeAction | undefined{
+    const textEdits = new Array<vscode.TextEdit>();
+    const diagnosticCollection = this.diagnosticCollection.get(document.uri);
+    if (diagnosticCollection !== undefined) {
+      for (const diagnostic of diagnosticCollection) {
+        if (diagnostic.code === code) {
+          const capitalizedReplacement = this.capitalizeReplacementIfNeeded(document, diagnostic.range, replacement);
+          textEdits.push(new vscode.TextEdit(diagnostic.range, capitalizedReplacement));
+        }
+      }
+
+      if (textEdits.length > 1) {
+        const fix = this.getFixEdit(`[woke] Click to replace ALL with '${replacement}'`);
+        fix?.edit?.set(document.uri, textEdits);
+        return fix;
+      }
+    }
+
+    return undefined;
   }
 
   private showMessage(msg: string, severity: MessageSeverity): void {
@@ -185,18 +221,17 @@ export class WokeProvider implements vscode.CodeActionProvider {
 
   private async doLint(textDocument: vscode.TextDocument): Promise<void> {
     const docUri = textDocument.uri;
-    let diagnostics: vscode.Diagnostic[] = await this.runWoke(textDocument);
+    const diagnostics: vscode.Diagnostic[] = await this.runWoke(textDocument);
 
     this.diagnosticCollection.set(docUri, diagnostics);
   }
 
   private async runWoke(textDocument: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
     return new Promise<vscode.Diagnostic[]>((resolve) => {
-
       const diagnostics: vscode.Diagnostic[] = [];
       const useBufferArgs = textDocument.isUntitled || this.settings.trigger !== RunTrigger.onSave;
 
-      let processLine = (item: string) => {
+      const processLine = (item: string) => {
         if (item === '' || item.startsWith("No violations found")) {
           return;
         }
@@ -272,10 +307,9 @@ export class WokeProvider implements vscode.CodeActionProvider {
     for (const result of data.Results) {
       let severity: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Information;
 
-      let sev = result.Rule.Severity;
-      if (sev === "error") {
+      if (result.Rule.Severity === "error") {
         severity = vscode.DiagnosticSeverity.Error;
-      } else if (sev === "warning") {
+      } else if (result.Rule.Severity === "warning") {
         severity = vscode.DiagnosticSeverity.Warning;
       }
       const code = result.Rule.Name;
@@ -283,10 +317,10 @@ export class WokeProvider implements vscode.CodeActionProvider {
       this.alternatives.set(code, result.Rule.Alternatives);
 
       // TODO: error checking
-      let line = result.StartPosition.Line;
-      let startColumn = result.StartPosition.Column;
-      let endColumn = result.EndPosition.Column;
-      let reason = result.Reason;
+      const line = result.StartPosition.Line;
+      const startColumn = result.StartPosition.Column;
+      const endColumn = result.EndPosition.Column;
+      const reason = result.Reason;
 
       const range = new vscode.Range(line - 1, startColumn, line - 1, endColumn);
       const diagnostic = new vscode.Diagnostic(range, reason, severity);
