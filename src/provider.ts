@@ -179,7 +179,7 @@ export class WokeProvider implements vscode.CodeActionProvider {
     const capitalizedReplacement = this.capitalizeReplacementIfNeeded(document, range, replacement);
     const msg = `[woke] Click to replace with '${capitalizedReplacement}'`;
     const fix = this.getFixEdit(msg);
-    fix?.edit?.replace(document.uri, range, replacement);
+    fix?.edit?.replace(document.uri, range, capitalizedReplacement);
     return fix;
   }
 
