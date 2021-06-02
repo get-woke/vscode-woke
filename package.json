@@ -2,7 +2,7 @@
 	"name": "vscode-woke",
 	"displayName": "woke",
 	"description": "Detect non-inclusive language in your source code.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"publisher": "get-woke",
 	"author": {
 		"email": "celfring@gmail.com",
