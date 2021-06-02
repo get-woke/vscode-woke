@@ -154,6 +154,21 @@ export class WokeProvider implements vscode.CodeActionProvider {
     return actions;
   }
 
+  private capitalizeReplacementIfNeeded(document: vscode.TextDocument, range: vscode.Range, replacement: string): string {
+    const text = document.getText(range);
+    let caseAwareReplacement: string = replacement;
+    if (text.length > 0) {
+      const firstCharacter = text[0];
+      if (firstCharacter === firstCharacter.toUpperCase()) {
+        caseAwareReplacement = replacement[0].toUpperCase();
+        if (replacement.length > 1) {
+          caseAwareReplacement += replacement.substring(1);
+        }
+      }
+    }
+    return caseAwareReplacement;
+  }
+
   private getFixEdit(msg: string): vscode.CodeAction {
     const fix: vscode.CodeAction = new vscode.CodeAction(msg, vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
@@ -161,8 +176,10 @@ export class WokeProvider implements vscode.CodeActionProvider {
   }
 
   private createFix(document: vscode.TextDocument, range: vscode.Range, replacement: string): vscode.CodeAction {
-    const fix = this.getFixEdit(`[woke] Click to replace with '${replacement}'`);
-    fix?.edit?.replace(document.uri, range, replacement);
+    const capitalizedReplacement = this.capitalizeReplacementIfNeeded(document, range, replacement);
+    const msg = `[woke] Click to replace with '${capitalizedReplacement}'`;
+    const fix = this.getFixEdit(msg);
+    fix?.edit?.replace(document.uri, range, capitalizedReplacement);
     return fix;
   }
 
@@ -172,7 +189,8 @@ export class WokeProvider implements vscode.CodeActionProvider {
     if (diagnosticCollection !== undefined) {
       for (const diagnostic of diagnosticCollection) {
         if (diagnostic.code === code) {
-          textEdits.push(new vscode.TextEdit(diagnostic.range, replacement));
+          const capitalizedReplacement = this.capitalizeReplacementIfNeeded(document, diagnostic.range, replacement);
+          textEdits.push(new vscode.TextEdit(diagnostic.range, capitalizedReplacement));
         }
       }
 
